@@ -28,7 +28,7 @@ class ImageFolder:
         self.images = []
         for child in tqdm(self.paths):
             full_path = os.path.join(self.root, child)
-            image = Image.open(full_path)
+            image = Image.open(full_path).convert('RGB')
             self.images.append( transforms(image) )
             
     def __len__(self):
