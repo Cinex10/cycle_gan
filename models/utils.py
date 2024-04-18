@@ -1,5 +1,7 @@
 import random
+import numpy as np
 import torch
+from PIL import Image
 from torch.nn import init
 
 class ImagePool():
@@ -104,3 +106,22 @@ def load_weights(ckpt, net):
         current_state[i] = target_state[j]
 
     print(net.load_state_dict(current_state))
+
+def toImage(x):
+    # converts tensor in range [-1,1] to a pil image
+    x = x.numpy()
+    x = np.transpose(x, (1,2,0))
+    x = (x + 1)*127.5
+    x = x.astype('uint8')
+    return Image.fromarray(x)
+
+def save_visuals():
+    pass
+
+    #[imgA, imgB, fakeA, fakeB] = [[toImage(f) for f in X] for X in [imgA, imgB, fakeA, fakeB]]
+
+    #for i, (r1, r2, f1, f2) in enumerate(zip(imgA, imgB, fakeA, fakeB)):
+    #    r1.save(f'images/reala_{i}.jpg')
+    #    r2.save(f'images/realb_{i}.jpg')
+    #    f1.save(f'images/fakea_{i}.jpg')
+    #    f2.save(f'images/fakeb_{i}.jpg')  

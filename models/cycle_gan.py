@@ -1,3 +1,4 @@
+from typing import Any, Mapping
 import torch
 from torch import nn
 from torch.nn import init
@@ -9,6 +10,7 @@ import itertools
 import lightning as L
 from .networks import get_patchgan_model, get_resnet_generator
 from .utils import ImagePool, init_weights, set_requires_grad
+from torchmetrics.image import PeakSignalNoiseRatio
 
 class CycleGan(L.LightningModule):
     def __init__(self):
@@ -27,6 +29,8 @@ class CycleGan(L.LightningModule):
         self.fakePoolB = ImagePool()
         self.genLoss = None
         self.disLoss = None
+        
+        self.psnr = PeakSignalNoiseRatio()
 
         for m in [self.genX, self.genY, self.disX, self.disY]:
             init_weights(m)
@@ -139,6 +143,35 @@ class CycleGan(L.LightningModule):
         self.untoggle_optimizer(opt_d.optimizer)
         
         self.log_dict({'train/dis_loss' : self.disLoss.item(),'train/gen_loss' : self.genLoss.item()}, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        
+    def test_step(self, batch) -> torch.Tensor | Mapping[str, Any] | None:
+        print('start test')
+        imgA, imgB = batch['A'], batch['B']
+        
+        fakeB = self.genY(imgA)
+        fakeA = self.genX(imgB)
+        print('generate fake images')
+        
+        psnr_ab_score = self.psnr(fakeB,imgB)
+        psnr_ba_score = self.psnr(fakeA,imgA)
+        print('psnr_ab :',psnr_ab_score)
+        print('psnr_ba :',psnr_ba_score)
+        
+        self.log_dict({
+            'AtoB' : {
+                'psnr':psnr_ab_score
+            },
+            'BtoA' : {
+                'psnr':psnr_ba_score
+            },
+        })
+        
+        self.logger.log_image(key="visuals", images=[fakeA, fakeB], caption=["fakeA", "fakeB"])
+        
+        
+        
+        
+        
         
 
 if __name__ == '__main__':
