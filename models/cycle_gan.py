@@ -85,7 +85,7 @@ class CycleGan(L.LightningModule):
         # gather all losses
         extraLoss = cycleLoss + 0.5 * identityLoss
         self.genLoss = mseGenA + mseGenB + self.lm * extraLoss
-        self.log('train/gen_loss', self.genLoss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        
         
         # store detached generated images
         self.fakeA = fakeA.detach()
@@ -114,7 +114,6 @@ class CycleGan(L.LightningModule):
         
         # gather all losses
         self.disLoss = 0.5 * (mseFakeA + mseRealA + mseFakeB + mseRealB)
-        self.log('dis_loss', self.disLoss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return self.disLoss
     
     def training_step(self, batch, batch_idx):
@@ -138,7 +137,9 @@ class CycleGan(L.LightningModule):
         self.manual_backward(self.disLoss)
         opt_d.optimizer.step()
         self.untoggle_optimizer(opt_d.optimizer)
-
+        
+        self.log_dict({'train/dis_loss' : self.disLoss.item(),'train/gen_loss' : self.genLoss.item()}, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        
 
 if __name__ == '__main__':
     model = CycleGan()
