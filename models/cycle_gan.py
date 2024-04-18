@@ -158,12 +158,9 @@ class CycleGan(L.LightningModule):
         print('psnr_ba :',psnr_ba_score)
         
         self.log_dict({
-            'AtoB' : {
-                'psnr':psnr_ab_score
-            },
-            'BtoA' : {
-                'psnr':psnr_ba_score
-            },
+            'psnr_ab' : psnr_ab_score,
+            'psnr_ba' : psnr_ba_score,
+            
         })
         
         self.logger.log_image(key="visuals", images=[fakeA, fakeB], caption=["fakeA", "fakeB"])
