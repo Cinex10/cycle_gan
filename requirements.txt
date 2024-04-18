@@ -1,0 +1,8 @@
+torch
+lightning
+torchsummary
+Pillow
+tqdm
+unittest
+torchvision
+wandb
