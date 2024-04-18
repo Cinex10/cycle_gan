@@ -1,8 +1,7 @@
 torch
 lightning
-torchsummary
+torch-summary
 Pillow
 tqdm
-unittest
 torchvision
 wandb
