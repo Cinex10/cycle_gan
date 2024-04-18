@@ -13,7 +13,7 @@ from .utils import ImagePool, init_weights, set_requires_grad
 class CycleGan(L.LightningModule):
     def __init__(self):
         super().__init__()
-        
+        self.automatic_optimization=False
         # generator pair
         self.genX = get_resnet_generator()
         self.genY = get_resnet_generator()
@@ -117,15 +117,27 @@ class CycleGan(L.LightningModule):
         self.log('dis_loss', self.disLoss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return self.disLoss
     
-    def training_step(self, batch, batch_idx, optimizer_idx):
-        imgA, imgB = batch['A'], batch['B']
-        discriminator_requires_grad = (optimizer_idx==1)
-        set_requires_grad([self.disX, self.disY], discriminator_requires_grad)
+    def training_step(self, batch, batch_idx):
+        opt_g, opt_d = self.optimizers()
         
-        if optimizer_idx == 0:
-            return self.generator_training_step(imgA, imgB)
-        else:
-            return self.discriminator_training_step(imgA, imgB)        
+        imgA, imgB = batch['A'], batch['B']
+        #discriminator_requires_grad = (optimizer_idx==1)
+        set_requires_grad([self.disX, self.disY], True)
+        
+        self.toggle_optimizer(opt_g.optimizer)
+        self.generator_training_step(imgA, imgB)
+        opt_g.optimizer.zero_grad()
+        self.manual_backward(self.genLoss)
+        opt_g.step()
+        self.untoggle_optimizer(opt_g.optimizer)
+        
+        
+        self.toggle_optimizer(opt_d.optimizer)
+        self.discriminator_training_step(imgA, imgB)        
+        opt_d.optimizer.zero_grad()
+        self.manual_backward(self.disLoss)
+        opt_d.optimizer.step()
+        self.untoggle_optimizer(opt_d.optimizer)
 
 
 if __name__ == '__main__':
