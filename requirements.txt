@@ -1,5 +1,5 @@
 torch
-lightning
+pytorch-lightning
 torch-summary
 Pillow
 tqdm

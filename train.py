@@ -4,9 +4,9 @@ from data.unpaired_dataset import UnpairedDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from PIL import Image
-import lightning as L
-from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.callbacks import ModelCheckpoint
+import pytorch_lightning as L
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 def main():
     expirement_name = 'example'
