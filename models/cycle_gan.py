@@ -7,10 +7,8 @@ from torch.nn import functional as F
 from torchsummary import summary
 import itertools
 import lightning as L
-
-
-from networks import get_patchgan_model, get_resnet_generator
-from utils import ImagePool, init_weights, set_requires_grad
+from .networks import get_patchgan_model, get_resnet_generator
+from .utils import ImagePool, init_weights, set_requires_grad
 
 class CycleGan(L.LightningModule):
     def __init__(self):

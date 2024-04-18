@@ -17,7 +17,7 @@ def main():
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    wandb_logger = WandbLogger(project="CycleGAN")
+    wandb_logger = WandbLogger(project="CycleGAN",log_model=True)
     checkpoint_callback = ModelCheckpoint(dirpath=f'checkpoints/{expirement_name}',monitor='train/gen_loss',filename='{epoch}-{train/gen_loss:.2f}')
     trainer = L.Trainer(accelerator='auto',max_epochs=3,logger=wandb_logger,callbacks=[checkpoint_callback])
 
