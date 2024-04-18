@@ -6,7 +6,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.nn import functional as F
 from torchsummary import summary
 import itertools
-import pytorch_lightning as L
+import lightning as L
 from .networks import get_patchgan_model, get_resnet_generator
 from .utils import ImagePool, init_weights, set_requires_grad
 
