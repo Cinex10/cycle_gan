@@ -15,4 +15,4 @@ def get_data_transform(cfg):
         transforms.Normalize([.5, .5, .5], [.5, .5, .5])
     ]),
     }
-    return data_transforms
+    return data_transforms[cfg.phase]

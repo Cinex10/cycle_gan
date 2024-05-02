@@ -3,7 +3,7 @@ from pathlib import Path
 from torch.utils.data import Dataset
 from PIL import Image
 from tqdm.notebook import tqdm
-from utils import get_data_transform
+from .utils import get_data_transform
 
 
 def get_dataroot_path(root):
@@ -38,7 +38,7 @@ class UnpairedDataset(Dataset):
         assert mode in 'train test'.split(), 'mode should be either train or test'
         
         super().__init__()
-        self.transforms = get_data_transform()[mode]
+        self.transforms = get_data_transform(cfg)
         
         root = cfg.train.dataroot
         pathA = os.path.join(root, mode+"A")
