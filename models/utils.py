@@ -105,3 +105,5 @@ def load_weights(ckpt, net):
         current_state[i] = target_state[j]
 
     print(net.load_state_dict(current_state))
+    
+

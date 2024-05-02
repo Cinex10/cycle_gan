@@ -2,26 +2,15 @@ import os
 from pathlib import Path
 from torch.utils.data import Dataset
 from PIL import Image
-from torchvision import transforms
 from tqdm.notebook import tqdm
+from utils import get_data_transform
 
-data_transforms = {
-    'train': transforms.Compose([
-        transforms.Resize(286, Image.BICUBIC),
-        transforms.RandomCrop(256),
-        transforms.ToTensor(),
-        transforms.Normalize([.5, .5, .5], [.5, .5, .5])
-    ]),
-    'test': transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize([.5, .5, .5], [.5, .5, .5])
-    ]),
-}
 
 def get_dataroot_path(root):
     return os.path.join(Path(__file__).resolve().parent.parent,root)
 
 class ImageFolder:
+
     def __init__(self, root, transforms):
         self.root = root
         self.paths = os.listdir(root)
@@ -49,7 +38,7 @@ class UnpairedDataset(Dataset):
         assert mode in 'train test'.split(), 'mode should be either train or test'
         
         super().__init__()
-        self.transforms = data_transforms[mode]
+        self.transforms = get_data_transform()[mode]
         
         root = cfg.train.dataroot
         pathA = os.path.join(root, mode+"A")
