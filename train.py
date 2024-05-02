@@ -9,15 +9,13 @@ import lightning as L
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 import hydra
-from omegaconf import DictConfig, OmegaConf
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
 
-    data = UnpairedDataset(cfg.train.dataroot,
-                           'train',
-                           )
-    data = DataLoader(data, batch_size=1,
+    data = UnpairedDataset(cfg)
+    data = DataLoader(data, 
+                      batch_size=cfg.train.batch_size,
                       shuffle=True,
                       num_workers=cfg.train.num_workers,
                       )

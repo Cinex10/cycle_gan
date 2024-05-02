@@ -40,16 +40,18 @@ class ImageFolder:
     
 
 class UnpairedDataset(Dataset):
-    def __init__(self, root, mode):
+    def __init__(self, cfg):
         """
         root must have trainA trainB testA testB as its subfolders
         mode must be either 'train' or 'test'
         """
+        mode = cfg.phase
         assert mode in 'train test'.split(), 'mode should be either train or test'
         
         super().__init__()
         self.transforms = data_transforms[mode]
-        root = get_dataroot_path(root)
+        
+        root = cfg.train.dataroot
         pathA = os.path.join(root, mode+"A")
         self.dirA = ImageFolder(pathA, self.transforms)
         

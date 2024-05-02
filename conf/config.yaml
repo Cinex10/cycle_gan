@@ -1,3 +1,4 @@
+phase: train
 project:
     name: CycleGAN
     run: first_run
@@ -16,3 +17,4 @@ train:
     accelerator: auto
     num_workers: 4
     dataroot: datasets/edges2shoes
+    batch_size: 1
