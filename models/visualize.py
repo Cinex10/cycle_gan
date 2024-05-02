@@ -7,8 +7,14 @@ class Visualizer:
     def __init__(self,result_folder,visuals) -> None:
         self.result_folder = result_folder
         self.visuals = visuals
+        train_path = os.path.join(result_folder,'train')
+        test_path = os.path.join(result_folder,'test')
+        os.makedirs(train_path,exist_ok=True)
+        os.makedirs(test_path,exist_ok=True)
         for name in visuals:
-            path = os.path.join(result_folder,name)
+            path = os.path.join(train_path,name)
+            os.makedirs(path,exist_ok=True)
+            path = os.path.join(test_path,name)
             os.makedirs(path,exist_ok=True)
     
     
@@ -22,9 +28,9 @@ class Visualizer:
         return Image.fromarray(x)
 
 
-    def save_visuals(self,imgs,results_path,epoch,logger):
+    def save_visuals(self,imgs,epoch,logger,phase):
         ims_dict = {}
-        
+        results_path = os.path.join(self.result_folder,phase)        
         for name,image in imgs.items():
             a = self.tensor2pil(image)
             visual_path = os.path.join(results_path,name)
@@ -32,5 +38,5 @@ class Visualizer:
             a.save(path)
             ims_dict[name] = wandb.Image(a)
         # log image to wandb
-        logger.log_image(key='visuals',images=list(ims_dict.values()),caption=list(ims_dict.keys()))
+        logger.log_image(key='summary',images=list(ims_dict.values()),caption=list(ims_dict.keys()))
   

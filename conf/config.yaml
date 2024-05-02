@@ -1,0 +1,18 @@
+project:
+    name: CycleGAN
+    run: first_run
+preprocess:
+    input_width: 64
+    input_height: 64
+    crop: False
+
+folders:
+    checkpoint: checkpoints
+    result: results
+
+train:
+    nb_epochs: 3
+    strategy: 'ddp_find_unused_parameters_true'
+    accelerator: auto
+    num_workers: 4
+    dataroot: datasets/edges2shoes

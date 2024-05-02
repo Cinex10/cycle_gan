@@ -1,0 +1,7 @@
+project:
+  name: CycleGAN
+  run: first_run
+preprocess:
+  input_width: 64
+  input_height: 64
+  crop: false

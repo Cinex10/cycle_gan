@@ -1,3 +1,4 @@
+import os
 import torch
 from models.cycle_gan import CycleGan
 from data.unpaired_dataset import UnpairedDataset
@@ -7,19 +8,31 @@ from PIL import Image
 import lightning as L
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
-def main():
-    expirement_name = 'example'
+@hydra.main(version_base=None, config_path="conf", config_name="config")
+def main(cfg):
 
-    data = UnpairedDataset('datasets/edges2shoes', 'train')
-    data = DataLoader(data, batch_size=1, shuffle=True,num_workers=4)
-    model = CycleGan()
+    data = UnpairedDataset(cfg.train.dataroot,
+                           'train',
+                           )
+    data = DataLoader(data, batch_size=1,
+                      shuffle=True,
+                      num_workers=cfg.train.num_workers,
+                      )
+    
+    model = CycleGan(cfg)
 
-    #device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    wandb_logger = WandbLogger(project="CycleGAN")
-    checkpoint_callback = ModelCheckpoint(dirpath=f'checkpoints/{expirement_name}',monitor='train/gen_loss')
-    trainer = L.Trainer(accelerator='auto',max_epochs=3,logger=wandb_logger,callbacks=[checkpoint_callback],strategy='ddp_find_unused_parameters_true')
+    wandb_logger = WandbLogger(project=cfg.project.name,name=cfg.project.run)
+    checkpoint_path = os.path.join(cfg.folders.checkpoint,cfg.project.run)
+    checkpoint_callback = ModelCheckpoint(dirpath=checkpoint_path,monitor='train/gen_loss')
+    trainer = L.Trainer(accelerator=cfg.train.accelerator,
+                        max_epochs=cfg.train.nb_epochs,
+                        logger=wandb_logger,
+                        callbacks=[checkpoint_callback],
+                        strategy=cfg.train.strategy,
+                        )
 
     trainer.fit(model, data)    
 

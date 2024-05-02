@@ -9,12 +9,13 @@ from torchsummary import summary
 import itertools
 import lightning as L
 from .networks import get_patchgan_model, get_resnet_generator
-from .utils import ImagePool, init_weights, set_requires_grad,save_visuals
+from .utils import ImagePool, init_weights, set_requires_grad
 from torchmetrics.image import PeakSignalNoiseRatio
 from torchmetrics.image import StructuralSimilarityIndexMeasure
+from .visualize import Visualizer
 
 class CycleGan(L.LightningModule):
-    def __init__(self):
+    def __init__(self,cfg):
         super().__init__()
         self.automatic_optimization=False
         # generator pair
@@ -31,6 +32,14 @@ class CycleGan(L.LightningModule):
         self.genLoss = None
         self.disLoss = None
         
+        self.psnr = PeakSignalNoiseRatio()
+        self.ssim = StructuralSimilarityIndexMeasure()
+        
+        
+        self.visualizer = Visualizer(result_folder=cfg.folders.results,
+                                     visuals=['real_A','fake_A','real_B','fake_B'],
+                                     )
+
         self.psnr = PeakSignalNoiseRatio()
         self.ssim = StructuralSimilarityIndexMeasure()
 
@@ -143,8 +152,16 @@ class CycleGan(L.LightningModule):
         self.manual_backward(self.disLoss)
         opt_d.optimizer.step()
         self.untoggle_optimizer(opt_d.optimizer)
+        psnr_ab_score = self.psnr(self.fakeB,self.imgB) 
+        psnr_ba_score = self.psnr(self.fakeA,self.imgA)
         
-        self.log_dict({'train/dis_loss' : self.disLoss.item(),'train/gen_loss' : self.genLoss.item()}, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        scores = {
+            'psnr_ab':psnr_ab_score,
+            'psnr_ba':psnr_ba_score,
+            'train/dis_loss' : self.disLoss.item(),
+            'train/gen_loss' : self.genLoss.item(),
+        }
+        self.log_dict(scores, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True,batch_size=1)
         
     def test_step(self, batch) -> torch.Tensor | Mapping[str, Any] | None:
         print('start test')
@@ -157,8 +174,8 @@ class CycleGan(L.LightningModule):
         psnr_ab_score = self.psnr(fakeB,imgB)
         psnr_ba_score = self.psnr(fakeA,imgA)
         
-        self.log('psnr_ab',psnr_ab_score)
-        self.log('psnr_ba',psnr_ba_score)
+        self.log('psnr_ab',psnr_ab_score,batch_size=1)
+        self.log('psnr_ba',psnr_ba_score,batch_size=1)
         
         #self.log_dict({
         #    'psnr_ab' : psnr_ab_score,
@@ -169,12 +186,13 @@ class CycleGan(L.LightningModule):
         #self.logger.log_image(key="visuals", images=[fakeA, fakeB], caption=["fakeA", "fakeB"])
         
     def on_train_epoch_end(self):
-        self.current_epoch
         visuals = {
-            'fakeA' : self.fakeA,
-            'fakeB' : self.fakeB,
+            'real_A' : self.imgA,
+            'fake_A' : self.fakeA,
+            'real_B' : self.imgB,
+            'fake_B' : self.fakeB,
         }
-        save_visuals(visuals,'results/',self.current_epoch)
+        self.visualizer.save_visuals(visuals,self.current_epoch,self.logger)
         
         
         
