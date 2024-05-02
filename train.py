@@ -12,16 +12,16 @@ def main():
     expirement_name = 'example'
 
     data = UnpairedDataset('datasets/edges2shoes', 'train')
-    data = DataLoader(data, batch_size=1, shuffle=True)
+    data = DataLoader(data, batch_size=1, shuffle=True,num_workers=4)
     model = CycleGan()
 
     #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    wandb_logger = WandbLogger(project="CycleGAN",log_model=True)
+    wandb_logger = WandbLogger(project="CycleGAN")
     checkpoint_callback = ModelCheckpoint(dirpath=f'checkpoints/{expirement_name}',monitor='train/gen_loss')
     trainer = L.Trainer(accelerator='auto',max_epochs=3,logger=wandb_logger,callbacks=[checkpoint_callback],strategy='ddp_find_unused_parameters_true')
 
-    trainer.fit(model, data)
+    trainer.fit(model, data)    
 
 if __name__ == '__main__':
     main()

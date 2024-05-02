@@ -9,8 +9,9 @@ from torchsummary import summary
 import itertools
 import lightning as L
 from .networks import get_patchgan_model, get_resnet_generator
-from .utils import ImagePool, init_weights, set_requires_grad
+from .utils import ImagePool, init_weights, set_requires_grad,save_visuals
 from torchmetrics.image import PeakSignalNoiseRatio
+from torchmetrics.image import StructuralSimilarityIndexMeasure
 
 class CycleGan(L.LightningModule):
     def __init__(self):
@@ -31,6 +32,7 @@ class CycleGan(L.LightningModule):
         self.disLoss = None
         
         self.psnr = PeakSignalNoiseRatio()
+        self.ssim = StructuralSimilarityIndexMeasure()
 
         for m in [self.genX, self.genY, self.disX, self.disY]:
             init_weights(m)
@@ -123,12 +125,12 @@ class CycleGan(L.LightningModule):
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
         
-        imgA, imgB = batch['A'], batch['B']
+        self.imgA, self.imgB = batch['A'], batch['B']
         #discriminator_requires_grad = (optimizer_idx==1)
         set_requires_grad([self.disX, self.disY], True)
         
         self.toggle_optimizer(opt_g.optimizer)
-        self.generator_training_step(imgA, imgB)
+        self.generator_training_step(self.imgA, self.imgB)
         opt_g.optimizer.zero_grad()
         self.manual_backward(self.genLoss)
         opt_g.step()
@@ -136,7 +138,7 @@ class CycleGan(L.LightningModule):
         
         
         self.toggle_optimizer(opt_d.optimizer)
-        self.discriminator_training_step(imgA, imgB)        
+        self.discriminator_training_step(self.imgA, self.imgB)        
         opt_d.optimizer.zero_grad()
         self.manual_backward(self.disLoss)
         opt_d.optimizer.step()
@@ -154,17 +156,25 @@ class CycleGan(L.LightningModule):
         
         psnr_ab_score = self.psnr(fakeB,imgB)
         psnr_ba_score = self.psnr(fakeA,imgA)
-        print('psnr_ab :',psnr_ab_score)
-        print('psnr_ba :',psnr_ba_score)
         
-        self.log_dict({
-            'psnr_ab' : psnr_ab_score,
-            'psnr_ba' : psnr_ba_score,
-            
-        })
+        self.log('psnr_ab',psnr_ab_score)
+        self.log('psnr_ba',psnr_ba_score)
         
-        self.logger.log_image(key="visuals", images=[fakeA, fakeB], caption=["fakeA", "fakeB"])
+        #self.log_dict({
+        #    'psnr_ab' : psnr_ab_score,
+        #    'psnr_ba' : psnr_ba_score,
+        #    
+        #})
+    
+        #self.logger.log_image(key="visuals", images=[fakeA, fakeB], caption=["fakeA", "fakeB"])
         
+    def on_train_epoch_end(self):
+        self.current_epoch
+        visuals = {
+            'fakeA' : self.fakeA,
+            'fakeB' : self.fakeB,
+        }
+        save_visuals(visuals,'results/',self.current_epoch)
         
         
         
