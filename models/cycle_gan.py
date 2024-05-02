@@ -41,7 +41,7 @@ class CycleGan(L.LightningModule):
                                      )
 
         self.psnr = PeakSignalNoiseRatio()
-        self.ssim = StructuralSimilarityIndexMeasure()
+        #self.ssim = StructuralSimilarityIndexMeasure()
 
         for m in [self.genX, self.genY, self.disX, self.disY]:
             init_weights(m)
@@ -156,12 +156,15 @@ class CycleGan(L.LightningModule):
         psnr_ba_score = self.psnr(self.fakeA,self.imgA)
         
         scores = {
-            'psnr_ab':psnr_ab_score,
-            'psnr_ba':psnr_ba_score,
             'train/dis_loss' : self.disLoss.item(),
             'train/gen_loss' : self.genLoss.item(),
         }
         self.log_dict(scores, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True,batch_size=1)
+        scores = {
+            'psnr_ab':psnr_ab_score,
+            'psnr_ba':psnr_ba_score,
+        }
+        self.log_dict(scores,on_epoch=True, prog_bar=True, logger=True,sync_dist=True,batch_size=1)
         
     def test_step(self, batch) -> torch.Tensor | Mapping[str, Any] | None:
         print('start test')
