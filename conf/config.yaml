@@ -9,7 +9,7 @@ preprocess:
 
 folders:
     checkpoint: checkpoints
-    result: results
+    results: results
 
 train:
     nb_epochs: 3

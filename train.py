@@ -1,4 +1,5 @@
 import os
+from omegaconf import OmegaConf
 import torch
 from models.cycle_gan import CycleGan
 from data.unpaired_dataset import UnpairedDataset
@@ -12,7 +13,8 @@ import hydra
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
-
+    print(OmegaConf.to_yaml(cfg))
+    return
     data = UnpairedDataset(cfg)
     data = DataLoader(data, 
                       batch_size=cfg.train.batch_size,
